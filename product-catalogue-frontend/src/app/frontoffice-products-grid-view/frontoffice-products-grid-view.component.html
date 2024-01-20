@@ -1,0 +1,105 @@
+<div *ngIf="this.products">
+    <table class="table table-hover">
+        <tr>
+            <td>
+                <h3>{{this.title}}</h3>
+            </td>
+            <td *ngIf="!this.authenticationService.isAdmin()">
+                <form #searchForm="ngForm" (ngSubmit)="onSearchProducts(searchForm.value)">
+
+                    <!-- <div class="form-group has-feedback has-search">
+                        <label>Mot clé:&nbsp;</label>
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                        <input type="text" name="keyword" ngModel placeholder="Search"> &nbsp;
+                        <input type="submit" class="btn btn-primary btn-sm" value="Rechercher" />
+                    </div> -->
+                    <div class="input-group pull-right">
+                        <input type="text" name="keyword" ngModel class="form-control"
+                            placeholder="Chercher produits par mot clé..">
+                        <div class="input-group-btn">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+    </table>
+    <div *ngFor="let product of this.products._embedded.products">
+        <div class="col-md-6">
+            <div class="panel panel-info _panel-size">
+                <div class="panel-heading">
+                    <h5 class="panel-title">{{product.designation}}</h5>
+                </div>
+                <div class="panel-body">
+                    <!-- Utilisation affichage de Firebase Storage -->
+                    <img class="img-thumbnail img-rounded btn" height="210" width="210"
+                        [src]="product.photoName+'?ts='+getCurrentTimeStamp()" (click)="onProductDetail(product)"
+                        title="Afficher fiche produit">
+
+                    <!-- Utilisation upload au serveur backend -->
+                    <!-- <img class="img-thumbnail img-rounded btn" height="210" width="210"
+                        [src]="this.HOST+'/get-product-photo/'+product.photoName+'?ts='+this.getCurrentTimeStamp()"
+                        (click)="onProductDetail(product)" title="Afficher fiche produit"> -->
+                    <div *ngIf="this.authenticationService.isAdmin()">
+                        <button (click)="onEditPhoto(product)" title="Changer photo">
+                            <span class="glyphicon glyphicon-edit"></span>
+                        </button>
+                        <div *ngIf="this.isEditPhoto && product==this.currentProduct">
+
+                            <!-- utilisation de l'upload a Firebase Storage -->
+                            <div class="my-3">
+                                <!-- voir le component upload-form.component.ts -->
+                                <app-upload-form [photoURL]="product.photoName" typeUpload="update">
+                                </app-upload-form>
+                                <!-- j'ai pas besoin du champ hidden comme la cas de addProduct(), car la BD ne sera pas MAJ -->
+                            </div>
+
+                            <!-- Utilisation upload au serveur backend -->
+                            <!-- <input type="file" (change)="onSelectPhotos($event)">
+                            <button class="btn btn-primary btn-sm" value="Upload" (click)="onUploadPhotos()"
+                                [disabled]="!this.selectedPhotos">
+                                Upload&nbsp;<span class="glyphicon glyphicon-upload"></span>
+                            </button>
+                            {{this.progress}}% -->
+                        </div>
+                    </div>
+                    <div>{{product.description}}</div>
+                    <div><label>Prix: {{product.currentPrice|number:'0.2'}}</label></div>
+                    <span *ngIf="product.isOnPromotion">
+                        <img class="img-thumbnail img-circle" height="30" width="30" src="assets/images/promotion.png"
+                            title="Produit en promotion">
+                    </span>
+                    <span *ngIf="product.isSelected">
+                        <img class="img-thumbnail img-circle" height="30" width="30" src="assets/images/selected.png"
+                            title="Produit sélectionné">
+                    </span>
+                    <span *ngIf="product.isAvailable">
+                        <img class="img-thumbnail img-circle" height="30" width="30" src="assets/images/available.png"
+                            title="Produit disponible">
+                    </span>
+                    <div>
+                        <form #formAddToCaddy="ngForm" (ngSubmit)="onAddProductToCaddy(product)">
+                            <label class="control-label">Quantité:&nbsp;</label>
+                            <input type="number" name="orderedQuantity" [(ngModel)]="product.orderedQuantity" ngModel
+                                style="width:40px" [disabled]="this.authenticationService.isAdmin()">&nbsp;
+                            <button class="btn btn-sm" [disabled]="this.authenticationService.isAdmin()">
+                                <img height="25" width="25" src="assets/images/caddy.png" title="Ajouter au panier">
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div>
+    <ul *ngIf="this.pagesArray && this.pagesArray.length>1" class="nav nav-pills">
+        <!-- i==this.pageNbr verifie que i a linterieur de la boucle correspond a le i cliqué ds la page-->
+        <li [ngClass]="i==this.pageNbr?'active':''" *ngFor='let pge of this.pagesArray; let i=index'>
+            <a (click)="onNavigateToPage(i)" class="_curseur">{{i}}</a>
+        </li>
+    </ul>
+</div>
